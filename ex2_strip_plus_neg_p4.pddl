@@ -14,7 +14,7 @@
        ; carrier
        carrier1 - carrier
     )
-    ; PREDICATE DEFINITION    
+    ; PREDICATE DEFINITION   
     (:init
         ; all box, content, agent at depot1 initially
         ; box initial position
@@ -31,12 +31,12 @@
         (be_at_robot depot1 robot1)
         ; people initial position
         (be_at_person location1 person1)
-        (be_at_person location2 person2)       
+        (be_at_person location2 person2)    
         ; box initial empty
         (empty_box box1)
         (empty_box box2)       
         ; set capacity
-        (carrier_capacity_4 carrier1)
+        (= (carrier_capacity carrier1) 4)
         ; assign carrier
         (assigned_robot_carrier  carrier1 robot1)
     )
@@ -44,16 +44,16 @@
     (:goal
         (and
 		(or
-		      (assigned_person_content content1 person1)
-		      (assigned_person_content content4 person1)
+		    (assigned_person_content content1 person1)
+		    (assigned_person_content content4 person1)
 		)
 		(or
-		      (assigned_person_content content2 person1)
-		      (assigned_person_content content5 person1)
+		    (assigned_person_content content2 person1)
+		    (assigned_person_content content5 person1)
 		)
 		(or
-		      (assigned_person_content content3 person2)
-		      (assigned_person_content content6 person2)
+		    (assigned_person_content content3 person2)
+		    (assigned_person_content content6 person2)
 		)
         )
     )

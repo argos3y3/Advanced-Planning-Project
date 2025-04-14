@@ -14,7 +14,7 @@
        ; carrier
        carrier1 - carrier
     )
-    ; PREDICATE DEFINITION    
+    ; PREDICATE DEFINITION   
     (:init
         ; all box, content, agent at depot1 initially
         ; box initial position
@@ -33,7 +33,7 @@
         (empty_box box1)
         (empty_box box2)       
         ; set capacity
-        (carrier_capacity_4 carrier1)
+        (= (carrier_capacity carrier1) 4)
         ; assign carrier
         (assigned_robot_carrier  carrier1 robot1)
     )

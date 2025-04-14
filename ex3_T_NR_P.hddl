@@ -1,0 +1,2632 @@
+; AUTHOR: Dimitri Vinci
+; BRIEF DESCRIPTION:
+; Domain for ex3 of APTP exam project
+; PLANNING VERSION: hddl
+; REQUIRE: hierarchi + typing
+
+(define 
+
+    (domain ex3_T_NR_P)
+    
+    (:requirements :typing :hierachie)
+    
+    (:types 
+        person box robot content - object  
+        ; to handle not returning to depot
+        generic_location - object
+        location - generic_location
+        depot - generic_location
+        medicine tool food - content ;; subclassed content
+        carrier - object ;; carrier of robot 
+    )
+
+
+    (:predicates
+        ; position
+        (be_at_person ?l - generic_location ?p - person ) ;; true if person is in a given location
+        (be_at_box ?b - box ?l - generic_location) ;; true if box is in a given location
+        (be_at_content ?c - content ?l - generic_location)  ;; true if content is in a given location
+        (be_at_robot ?l - generic_location ?r - robot )  ;; true if content is in a given location
+        ; handle relation between object
+        ; box
+        (empty_box ?b - box)  ;; true if box not partecipate in any assigned_box_content predicate 
+        (assigned_box_content ?b - box ?c - content) ;; true if a box contain a content
+        (not_assigned_box_content ?b - box ?c - content) ;; negated version of previous predicate 
+        (is_assigned_box ?b - box) 
+        (not_is_assigned_box ?b - box) 
+        ; person
+        (assigned_person_content ?c - content ?p - person ) ;; true if a person has assigned a content
+        (not_assigned_person_content ?c - content ?p - person ) ;; negated version of previous predicate 
+        ; robot
+        (assigned_robot_carrier ?c - carrier ?r - robot )  ;; true if robot is carrying an object
+        (not_assigned_robot_carrier ?c - carrier ?r - robot )  ;; negated version of previos predicate
+        ; content
+        (is_assigned ?c - content) ;; true if a content partecipate in at least one assigned assigned_box_content predicate
+        (not_is_assigned ?c - content) ;; negated versione of previous predicate 
+        ; carrier
+        (assigned_carrier_box ?b - box ?c - carrier )
+        (not_assigned_carrier_box  ?b - box ?c - carrier)
+        ; to handle carrier capacity
+        (carrier_capacity_0 ?c - carrier)
+        (carrier_capacity_1 ?c - carrier)
+        (carrier_capacity_2 ?c - carrier)
+        (carrier_capacity_3 ?c - carrier)
+        (carrier_capacity_4 ?c - carrier)
+    )
+    
+    
+    ; TASK SECTION
+    
+    (:task deliver_food_tool_medicine
+ 	:parameters (?p1 ?p2 ?p3 - person ?r - robot) 
+ 	:precondition () 
+  	:effect () 
+    ) 
+    
+    (:task deliver_food_tool
+ 	:parameters (?p1 ?p2  - person ?r - robot) 
+ 	:precondition () 
+  	:effect () 
+    ) 
+    
+    (:task deliver_food_medicine
+ 	:parameters (?p1 ?p2  - person ?r - robot) 
+ 	:precondition () 
+  	:effect () 
+    ) 
+    
+    (:task deliver_tool_medicine
+ 	:parameters (?p1 ?p2  - person ?r - robot) 
+ 	:precondition () 
+  	:effect () 
+    ) 
+    
+    (:task deliver_food
+ 	:parameters (?p - person ?r - robot) 
+ 	:precondition () 
+  	:effect () 
+    ) 
+    (:task deliver_medicine
+ 	:parameters (?p - person ?r - robot) 
+ 	:precondition () 
+  	:effect () 
+    ) 
+    (:task deliver_tool
+ 	:parameters (?p - person ?r - robot) 
+ 	:precondition () 
+  	:effect () 
+    ) 
+    
+    ; component of deliver
+    ; get to location (generic, could also be depot)
+    (:task get_to 
+    	:parameters (?l - generic_location ?r - robot ) 
+    	:precondition () 
+ 	:effect () 
+    ) 
+    ; load smth to carrier
+    (:task load 
+  	:parameters (?b - box ?l - generic_location ?r - robot)  
+  	:precondition () 
+  	:effect () 
+    )
+    ; fill a box
+    (:task fill 
+    	:parameters (?b - box ?c - content ?r - robot ) 
+    	:precondition () 
+ 	:effect () 
+    ) 
+    ; unload smth to position (here location because only location could contain a person)
+    (:task unload 
+  	:parameters (?b - box  ?l - generic_location ?r - robot) 
+  	:precondition () 
+  	:effect () 
+    ) 
+    ; empty a box assigning smth to sm
+    (:task assign_box 
+  	:parameters (?b - box  ?c - content ?l - generic_location ?p - person ?r - robot) 
+  	:precondition () 
+  	:effect () 
+    ) 
+
+    
+    ; METHOD SECTION
+    
+    ; METHOD SECTION - to handle deliver
+    ; to handle general deliver
+
+    ; handle deliver of food tool medicine
+    (:method m_deliver_food_tool_medicine
+  	:parameters (?b1 ?b2 ?b3 - box ?c1 - food ?c2 - tool ?c3 - medicine ?lb1 ?lc1 ?lp1 ?lb2 ?lc2 ?lp2 ?lb3 ?lc3 ?lp3 - generic_location ?p1 ?p2 ?p3 - person ?r - robot) 
+  	:task (deliver_food_tool_medicine ?p1 ?p2 ?p3 ?r) 
+  	:precondition (and
+  	    ; box have not be the same (in this case content have different tipe so surely not the same)
+  	    (not
+  	    	(= ?b1 ?b2)
+  	    )
+  	    (not
+  	    	(= ?b1 ?b3)
+  	    )
+  	    (not
+  	    	(= ?b2 ?b3)
+  	    )  	    	
+  	    ; position of box
+  	    (be_at_box ?b1 ?lb1)
+  	    (be_at_box ?b2 ?lb2)
+  	    (be_at_box ?b3 ?lb3)
+  	    ; position of person
+  	    (be_at_person ?lp1 ?p1)  
+  	    (be_at_person ?lp2 ?p2)
+  	    (be_at_person ?lp3 ?p3)
+  	    ; position of content
+  	    (be_at_content ?c1 ?lc1)
+  	    (be_at_content ?c2 ?lc2)
+  	    (be_at_content ?c3 ?lc3)
+  	) 
+	:subtasks (and 
+	    ; first assignment
+            ; go to location if not already reached and load box
+            (task0 (get_to ?lb1 ?r)) 
+            (task1 (load ?b1 ?lb1 ?r))
+            ; go to content location and load content
+            (task2 (get_to ?lc1 ?r)) 
+            (task3 (unload ?b1 ?lc1 ?r)) ; first unload box
+            (task4 (fill ?b1 ?c1 ?r)) ; fill the box
+            (task5 (load ?b1 ?lc1 ?r)) ; load the box
+            ; second assignment
+            ; go to location if not already reached and load box
+            (task6 (get_to ?lb2 ?r)) 
+            (task7 (load ?b2 ?lb2 ?r))
+            ; go to content location and load content
+            (task8 (get_to ?lc2 ?r)) 
+            (task9 (unload ?b2 ?lc2 ?r)) ; first unload box
+            (task10 (fill ?b2 ?c2 ?r)) ; fill the box
+            (task11 (load ?b2 ?lc2 ?r)) ; load the box
+            ; third assignment
+            ; go to location if not already reached and load box
+            (task12 (get_to ?lb3 ?r)) 
+            (task13 (load ?b3 ?lb3 ?r))
+            ; go to content location and load content
+            (task14 (get_to ?lc3 ?r)) 
+            (task15 (unload ?b3 ?lc3 ?r)) ; first unload box
+            (task16 (fill ?b3 ?c3 ?r)) ; fill the box
+            (task17 (load ?b3 ?lc3 ?r)) ; load the box                      
+            ; reach objective 1
+	    (task24 (get_to ?lp1 ?r)) 
+	    (task25 (unload ?b1 ?lp1 ?r))
+	    (task26 (assign_box ?b1 ?c1 ?lp1 ?p1 ?r)) 	    
+            ; reach objective 2
+	    (task27 (get_to ?lp2 ?r)) 
+	    (task28 (unload ?b2 ?lp2 ?r))
+	    (task29 (assign_box ?b2 ?c2 ?lp2 ?p2 ?r)) 
+            ; reach objective 3
+	    (task30 (get_to ?lp3 ?r)) 
+	    (task31 (unload ?b3 ?lp3 ?r))
+	    (task32 (assign_box ?b3 ?c3 ?lp3 ?p3 ?r)) 	    
+	)    
+        :ordering (and 
+            ; collect boxes
+            (task0 < task1) 
+            (task1 < task2) 
+	    (task2 < task3) 
+	    (task3 < task4) 
+	    (task4 < task5) 	   
+	    (task5 < task6) 
+	    (task6 < task7) 
+	    (task7 < task8) 
+	    (task8 < task9) 
+	    (task9 < task10) 
+	    (task10 < task11) 
+	    (task11 < task12)  
+	    (task12 < task13) 
+	    (task13 < task14) 
+	    (task14 < task15) 
+	    (task15 < task16) 
+	    (task16 < task17) 
+	    (task17 < task24) 
+	    (task24 < task25) 
+	    (task25 < task26) 
+	    (task26 < task27)
+	    (task27 < task28)
+	    (task28 < task29)
+	    (task29 < task30)
+	    (task30 < task31)
+	    (task31 < task32) 
+         
+       ) 
+    ) 
+    
+    (:method m_deliver_food_tool
+  	:parameters (?b1 ?b2  - box ?c1 - food ?c2 - tool  ?lb1 ?lc1 ?lp1 ?lb2 ?lc2 ?lp2 - generic_location ?p1 ?p2  - person ?r - robot) 
+  	:task (deliver_food_tool ?p1 ?p2  ?r) 
+  	:precondition (and
+  	    ; box have not be the same (in this case content have different tipe so surely not the same)
+  	    (not
+  	    	(= ?b1 ?b2)
+  	    )  	  	
+  	    ; position of box
+  	    (be_at_box ?b1 ?lb1 )
+  	    (be_at_box ?b2 ?lb2 )
+  	    ; position of person
+  	    (be_at_person ?lp1 ?p1)  
+  	    (be_at_person ?lp2 ?p2)
+  	    ; position of content
+  	    (be_at_content ?c1 ?lc1)
+  	    (be_at_content ?c2 ?lc2)
+  	) 
+	:subtasks (and 
+	    ; first assignment
+            ; go to location if not already reached and load box
+            (task0 (get_to ?lb1 ?r)) 
+            (task1 (load ?b1 ?lb1 ?r))
+            ; go to content location and load content
+            (task2 (get_to ?lc1 ?r)) 
+            (task3 (unload ?b1 ?lc1 ?r)) ; first unload box
+            (task4 (fill ?b1 ?c1 ?r)) ; fill the box
+            (task5 (load ?b1 ?lc1 ?r)) ; load the box
+            ; second assignment
+            ; go to location if not already reached and load box
+            (task6 (get_to ?lb2 ?r)) 
+            (task7 (load ?b2 ?lb2 ?r))
+            ; go to content location and load content
+            (task8 (get_to ?lc2 ?r)) 
+            (task9 (unload ?b2 ?lc2 ?r)) ; first unload box
+            (task10 (fill ?b2 ?c2 ?r)) ; fill the box
+            (task11 (load ?b2 ?lc2 ?r)) ; load the box                             
+            ; reach objective 1
+	    (task24 (get_to ?lp1 ?r)) 
+	    (task25 (unload ?b1 ?lp1 ?r))
+	    (task26 (assign_box ?b1 ?c1 ?lp1 ?p1 ?r)) 	    
+            ; reach objective 2
+	    (task27 (get_to ?lp2 ?r)) 
+	    (task28 (unload ?b2 ?lp2 ?r))
+	    (task29 (assign_box ?b2 ?c2 ?lp2 ?p2 ?r))             	    
+	)    
+        :ordering (and 
+            ; collect boxes
+            (task0 < task1) 
+            (task1 < task2) 
+	    (task2 < task3) 
+	    (task3 < task4) 
+	    (task4 < task5) 	   
+	    (task5 < task6) 
+	    (task6 < task7) 
+	    (task7 < task8) 
+	    (task8 < task9) 
+	    (task9 < task10) 
+	    (task10 < task11) 
+	    (task11 < task24) 
+	    (task24 < task25) 
+	    (task25 < task26) 
+	    (task26 < task27)
+	    (task27 < task28)
+	    (task28 < task29)	           
+       ) 
+    ) 
+    
+    (:method m_deliver_food_medicine
+  	:parameters (?b1 ?b2  - box ?c1 - food ?c2 - medicine  ?lb1 ?lc1 ?lp1 ?lb2 ?lc2 ?lp2 - generic_location ?p1 ?p2  - person ?r - robot) 
+  	:task (deliver_food_medicine ?p1 ?p2  ?r) 
+  	:precondition (and
+  	    ; box have not be the same (in this case content have different tipe so surely not the same)
+  	    (not
+  	    	(= ?b1 ?b2)
+  	    )  	  	
+  	    ; position of box
+  	    (be_at_box ?b1 ?lb1 )
+  	    (be_at_box ?b2 ?lb2 )
+  	    ; position of person
+  	    (be_at_person ?lp1 ?p1)  
+  	    (be_at_person ?lp2 ?p2)
+  	    ; position of content
+  	    (be_at_content ?c1 ?lc1)
+  	    (be_at_content ?c2 ?lc2)
+  	) 
+	:subtasks (and 
+	    ; first assignment
+            ; go to location if not already reached and load box
+            (task0 (get_to ?lb1 ?r)) 
+            (task1 (load ?b1 ?lb1 ?r))
+            ; go to content location and load content
+            (task2 (get_to ?lc1 ?r)) 
+            (task3 (unload ?b1 ?lc1 ?r)) ; first unload box
+            (task4 (fill ?b1 ?c1 ?r)) ; fill the box
+            (task5 (load ?b1 ?lc1 ?r)) ; load the box
+            ; second assignment
+            ; go to location if not already reached and load box
+            (task6 (get_to ?lb2 ?r)) 
+            (task7 (load ?b2 ?lb2 ?r))
+            ; go to content location and load content
+            (task8 (get_to ?lc2 ?r)) 
+            (task9 (unload ?b2 ?lc2 ?r)) ; first unload box
+            (task10 (fill ?b2 ?c2 ?r)) ; fill the box
+            (task11 (load ?b2 ?lc2 ?r)) ; load the box                             
+            ; reach objective 1
+	    (task24 (get_to ?lp1 ?r)) 
+	    (task25 (unload ?b1 ?lp1 ?r))
+	    (task26 (assign_box ?b1 ?c1 ?lp1 ?p1 ?r)) 	    
+            ; reach objective 2
+	    (task27 (get_to ?lp2 ?r)) 
+	    (task28 (unload ?b2 ?lp2 ?r))
+	    (task29 (assign_box ?b2 ?c2 ?lp2 ?p2 ?r))             	    
+	)    
+        :ordering (and 
+            ; collect boxes
+            (task0 < task1) 
+            (task1 < task2) 
+	    (task2 < task3) 
+	    (task3 < task4) 
+	    (task4 < task5) 	   
+	    (task5 < task6) 
+	    (task6 < task7) 
+	    (task7 < task8) 
+	    (task8 < task9) 
+	    (task9 < task10) 
+	    (task10 < task11) 
+	    (task11 < task24) 
+	    (task24 < task25) 
+	    (task25 < task26) 
+	    (task26 < task27)
+	    (task27 < task28)
+	    (task28 < task29)	           
+       ) 
+    ) 
+    (:method m_deliver_tool_medicine
+  	:parameters (?b1 ?b2  - box ?c1 - tool ?c2 - medicine  ?lb1 ?lc1 ?lp1 ?lb2 ?lc2 ?lp2 - generic_location ?p1 ?p2  - person ?r - robot) 
+  	:task (deliver_tool_medicine ?p1 ?p2  ?r) 
+  	:precondition (and
+  	    ; box have not be the same (in this case content have different tipe so surely not the same)
+  	    (not
+  	    	(= ?b1 ?b2)
+  	    )  	  	
+  	    ; position of box
+  	    (be_at_box ?b1 ?lb1 )
+  	    (be_at_box ?b2 ?lb2 )
+  	    ; position of person
+  	    (be_at_person ?lp1 ?p1)  
+  	    (be_at_person ?lp2 ?p2)
+  	    ; position of content
+  	    (be_at_content ?c1 ?lc1)
+  	    (be_at_content ?c2 ?lc2)
+  	) 
+	:subtasks (and 
+	    ; first assignment
+            ; go to location if not already reached and load box
+            (task0 (get_to ?lb1 ?r)) 
+            (task1 (load ?b1 ?lb1 ?r))
+            ; go to content location and load content
+            (task2 (get_to ?lc1 ?r)) 
+            (task3 (unload ?b1 ?lc1 ?r)) ; first unload box
+            (task4 (fill ?b1 ?c1 ?r)) ; fill the box
+            (task5 (load ?b1 ?lc1 ?r)) ; load the box
+            ; second assignment
+            ; go to location if not already reached and load box
+            (task6 (get_to ?lb2 ?r)) 
+            (task7 (load ?b2 ?lb2 ?r))
+            ; go to content location and load content
+            (task8 (get_to ?lc2 ?r)) 
+            (task9 (unload ?b2 ?lc2 ?r)) ; first unload box
+            (task10 (fill ?b2 ?c2 ?r)) ; fill the box
+            (task11 (load ?b2 ?lc2 ?r)) ; load the box                             
+            ; reach objective 1
+	    (task24 (get_to ?lp1 ?r)) 
+	    (task25 (unload ?b1 ?lp1 ?r))
+	    (task26 (assign_box ?b1 ?c1 ?lp1 ?p1 ?r)) 	    
+            ; reach objective 2
+	    (task27 (get_to ?lp2 ?r)) 
+	    (task28 (unload ?b2 ?lp2 ?r))
+	    (task29 (assign_box ?b2 ?c2 ?lp2 ?p2 ?r))             	    
+	)    
+        :ordering (and 
+            ; collect boxes
+            (task0 < task1) 
+            (task1 < task2) 
+	    (task2 < task3) 
+	    (task3 < task4) 
+	    (task4 < task5) 	   
+	    (task5 < task6) 
+	    (task6 < task7) 
+	    (task7 < task8) 
+	    (task8 < task9) 
+	    (task9 < task10) 
+	    (task10 < task11) 
+	    (task11 < task24) 
+	    (task24 < task25) 
+	    (task25 < task26) 
+	    (task26 < task27)
+	    (task27 < task28)
+	    (task28 < task29)	           
+       ) 
+    ) 
+    
+    ; handle food deliver
+    (:method m_deliver_food_basic
+  	:parameters (?b - box ?c - food ?d ?l - generic_location ?p - person ?r - robot) 
+  	:task (deliver_food ?p ?r) 
+  	:precondition (and
+  	    (be_at_person ?l ?p)  ;; check if person in given location
+  	    ; check if box and content are at depot
+  	    (be_at_box ?b ?d )
+  	    (be_at_content ?c ?d )
+  	) 
+	:subtasks (and 
+            (task0 (get_to ?d ?r))            
+            (task1 (fill ?b ?c ?r))
+            (task2 (load ?b ?d ?r))
+	    (task3 (get_to ?l ?r)) 
+	    (task4 (unload ?b ?l ?r))
+	    (task5 (assign_box ?b ?c ?l ?p ?r)) 
+	)    
+        :ordering (and 
+	    (task0 < task1) 
+	    (task1 < task2) 
+	    (task2 < task3) 
+	    (task3 < task4) 
+	    (task4 < task5) 
+       ) 
+    ) 
+    
+    ; handle medicine deliver
+    (:method m_deliver_medicine_basic
+  	:parameters (?b - box ?c - medicine ?d ?l - generic_location ?p - person ?r - robot) 
+  	:task (deliver_medicine ?p ?r) 
+  	:precondition (and
+  	    (be_at_person ?l ?p)  ;; check if person in given location
+  	    ; check if box and content are at depot
+  	    (be_at_box ?b ?d )
+  	    (be_at_content ?c ?d )
+  	) 
+	:subtasks (and 
+            (task0 (get_to ?d ?r)) 
+            (task1 (fill ?b ?c ?r))
+            (task2 (load ?b ?d ?r))
+	    (task3 (get_to ?l ?r)) 
+	    (task4 (unload ?b ?l ?r))
+	    (task5 (assign_box ?b ?c ?l ?p ?r)) 
+	)    
+        :ordering (and 
+	    (task0 < task1) 
+	    (task1 < task2) 
+	    (task2 < task3) 
+	    (task3 < task4) 
+	    (task4 < task5) 
+       ) 
+    ) 
+    
+    ; handle tool deliver
+    (:method m_deliver_tool_basic
+  	:parameters (?b - box ?c - tool ?d ?l - generic_location ?p - person ?r - robot) 
+  	:task (deliver_tool ?p ?r) 
+  	:precondition (and
+  	    (be_at_person ?l ?p)  ;; check if person in given location
+  	    ; check if box and content are at depot
+  	    (be_at_box ?b ?d )
+  	    (be_at_content ?c ?d )
+  	) 
+	:subtasks (and 
+            (task0 (get_to ?d ?r)) 
+            (task1 (fill ?b ?c ?r))
+            (task2 (load ?b ?d ?r))
+	    (task3 (get_to ?l ?r)) 
+	    (task4 (unload ?b ?l ?r))
+	    (task5 (assign_box ?b ?c ?l ?p ?r)) 
+	)    
+        :ordering (and 
+	    (task0 < task1) 
+	    (task1 < task2) 
+	    (task2 < task3) 
+	    (task3 < task4) 
+	    (task4 < task5) 
+       ) 
+    ) 
+    
+    ; to handle variant deliver situation in which box and content are not at same location 
+    
+    ; handle food deliver
+    (:method m_deliver_food_var
+  	:parameters (?b - box ?c - food ?l1 ?l2 ?l3 - generic_location ?p - person ?r - robot) 
+  	:task (deliver_food ?p ?r) 
+  	:precondition (and
+  	    (be_at_person ?l3 ?p)  ;; check if person in given location
+  	    ; check if box and content are not same position
+  	    (be_at_box ?l1 ?b)
+  	    (be_at_content  ?c ?l2)
+  	    (not
+  	    	(= ?l2 ?l1)
+  	    )
+  	) 
+	:subtasks (and 
+	    ; go to location if not already reached and load box
+            (task0 (get_to ?l1 ?r)) 
+            (task1 (load ?b ?l1 ?r))
+            ; go to content location and load content
+            (task2 (get_to ?l2 ?r)) 
+            (task3 (unload ?b ?l2 ?r)) ; first unload box
+            (task4 (fill ?b ?c ?r)) ; fill the box
+            (task5 (load ?b ?l2 ?r)) ; load the box
+            ; reach objective
+	    (task6 (get_to ?l3 ?r)) 
+	    (task7 (unload ?b ?l3 ?r))
+	    (task8 (assign_box ?b ?c ?l3 ?p ?r)) 
+	)    
+        :ordering (and 
+	    (task0 < task1) 
+	    (task1 < task2) 
+	    (task2 < task3) 
+	    (task3 < task4) 
+	    (task4 < task5) 
+	    (task5 < task6) 
+	    (task6 < task7) 
+	    (task7 < task8)
+       ) 
+    ) 
+    
+    ; handle medicine deliver
+    (:method m_deliver_medicine_var
+  	:parameters (?b - box ?c - medicine ?l1 ?l2 ?l3 - generic_location ?p - person ?r - robot) 
+  	:task (deliver_medicine ?p ?r) 
+  	:precondition (and
+  	    (be_at_person ?l3 ?p)  ;; check if person in given location
+  	    ; check if box and content are not same position
+  	    (be_at_box  ?b ?l1)
+  	    (be_at_content ?c ?l2 )
+  	    (not
+  	    	(= ?l2 ?l1)
+  	    )
+  	) 
+	:subtasks (and 
+	    ; go to location if not already reached and load box
+            (task0 (get_to ?l1 ?r)) 
+            (task1 (load ?b ?l1 ?r))
+            ; go to content location and load content
+            (task2 (get_to ?l2 ?r)) 
+            (task3 (unload ?b ?l2 ?r)) ; first unload box
+            (task4 (fill ?b ?c ?r)) ; fill the box
+            (task5 (load ?b ?l2 ?r)) ; load the box
+            ; reach objective
+	    (task6 (get_to ?l3 ?r)) 
+	    (task7 (unload ?b ?l3 ?r))
+	    (task8 (assign_box ?b ?c ?l3 ?p  ?r)) 
+	)    
+        :ordering (and 
+	    (task0 < task1) 
+	    (task1 < task2) 
+	    (task2 < task3) 
+	    (task3 < task4) 
+	    (task4 < task5) 
+	    (task5 < task6) 
+	    (task6 < task7) 
+	    (task7 < task8)
+       ) 
+    ) 
+    
+    ; handle tool deliver
+    (:method m_deliver_tool_var
+  	:parameters (?b - box ?c - tool ?l1 ?l2 ?l3 - generic_location ?p - person ?r - robot) 
+  	:task (deliver_tool ?p ?r) 
+  	:precondition (and
+  	    (be_at_person ?l3 ?p)  ;; check if person in given location
+  	    ; check if box and content are not same position
+  	    (be_at_box ?b ?l1)
+  	    (be_at_content ?c ?l2 )
+  	    (not
+  	    	(= ?l2 ?l1)
+  	    )
+  	) 
+	:subtasks (and 
+	    ; go to location if not already reached and load box
+            (task0 (get_to ?l1 ?r)) 
+            (task1 (load ?b ?l1 ?r))
+            ; go to content location and load content
+            (task2 (get_to ?l2 ?r)) 
+            (task3 (unload ?b ?l2 ?r)) ; first unload box
+            (task4 (fill ?b ?c ?r)) ; fill the box
+            (task5 (load ?b ?l2 ?r)) ; load the box
+            ; reach objective
+	    (task6 (get_to ?l3 ?r)) 
+	    (task7 (unload ?b ?l3 ?r))
+	    (task8 (assign_box ?b ?c ?l3 ?p ?r)) 
+	)    
+        :ordering (and 
+	    (task0 < task1) 
+	    (task1 < task2) 
+	    (task2 < task3) 
+	    (task3 < task4) 
+	    (task4 < task5) 
+	    (task5 < task6) 
+	    (task6 < task7) 
+	    (task7 < task8)
+       ) 
+    )  
+
+    
+    
+    ;  METHOD SECTION - handling movement
+    
+    ; if already there do not move (useful to handle already in depot
+    (:method m_already_there 
+ 	:parameters (?l1 - generic_location ?l2 - generic_location ?r - robot) 
+ 	:task (get_to ?l2 ?r) 
+ 	:precondition (and
+	      (= ?l1 ?l2)
+	 ) 
+ 	:subtasks (and (task0 (noop ?r))) 
+    ) 
+    
+    (:method m_get_to_move_cc_4
+ 	:parameters (?cr - carrier ?l1 ?l2 - generic_location ?r - robot) 
+ 	:task (get_to ?l2 ?r) 
+ 	:precondition (and
+	     ; check if not same locations
+	     (not 
+		 (= ?l1 ?l2)
+	     )
+	     ; robot must be located at start 
+             (be_at_robot ?l1 ?r)
+             ; robot must be empty
+             (carrier_capacity_4 ?cr)
+	 ) 
+ 	:subtasks (and (task0 ( move_cc_4 ?cr ?l1 ?l2 ?r))) 
+    ) 
+    
+    (:method m_get_to_move_cc_3_wc
+ 	:parameters (?b - box ?c - content ?cr - carrier ?l1 - generic_location ?l2 - location ?r - robot) 
+ 	:task (get_to ?l2 ?r) 
+ 	:precondition (and
+	     ; check if not same locations
+	     (not 
+		  (= ?l1 ?l2)
+	     )
+	     ; robot, box and content must be located at start 
+	     (be_at_robot ?l1 ?r)
+	     (be_at_box ?b ?l1)
+	     (be_at_content ?c ?l1)
+	     (assigned_carrier_box ?b ?cr)
+	     (assigned_box_content ?b ?c)
+	     (carrier_capacity_3 ?cr)
+	 ) 
+ 	:subtasks (and (task0 (move_cc_3_wc ?b ?c ?cr ?l1 ?l2 ?r))) 
+    ) 
+    (:method m_get_to_move_cc_3_noc
+ 	:parameters (?b - box ?cr - carrier ?l1 - generic_location ?l2 - generic_location ?r - robot) 
+ 	:task (get_to ?l2 ?r) 
+ 	:precondition (and
+	     ; check if not same locations
+	     (not 
+		 (= ?l1 ?l2)
+	     )
+	     ; robot, box and content must be located at start 
+	     (be_at_robot ?l1 ?r )
+	     (be_at_box ?b ?l1)
+             ; check if box assigned to carrier
+	     (assigned_carrier_box ?b ?cr )
+             ; check carrier capacity
+	     (carrier_capacity_3 ?cr)
+	     (empty_box ?b)
+	     
+	 ) 
+ 	:subtasks (and (task0 ( move_cc_3_noc ?b ?cr ?l1 ?l2 ?r)) ) 
+    ) 
+    
+    (:method m_get_to_move_cc_2_wcwc
+ 	:parameters (?b1 ?b2 - box ?c1 ?c2 - content ?cr - carrier ?l1 - generic_location ?l2 - location ?r - robot) 
+ 	:task (get_to ?l2 ?r) 
+ 	:precondition (and
+	      ; check if not same locations
+	      (not 
+		  (= ?l1 ?l2)
+	      )
+	      ; boxes have not be the same (consequently also content are not the same)
+	      (not 
+		  (= ?b1 ?b2)
+	      )
+	      ; robot, box and content must be located at start 
+              (be_at_robot ?l1 ?r)
+              ; boxe position
+              (be_at_box ?b1 ?l1)
+              (be_at_box ?b2 ?l1)
+              ;contents position
+              (be_at_content ?c1 ?l1)
+              (be_at_content ?c2 ?l1)
+              ;assignment carrier boxes 
+              (assigned_carrier_box ?b1 ?cr)
+              (assigned_carrier_box ?b2 ?cr)
+              ;assignment box contents 
+              (assigned_box_content ?b1 ?c1)
+              (assigned_box_content ?b2 ?c2)
+              (carrier_capacity_2 ?cr)
+	 ) 
+ 	:subtasks (and (task0 (move_cc_2_wcwc ?b1 ?b2 ?c1 ?c2 ?cr ?l1 ?l2 ?r))) 
+    ) 
+    (:method m_get_to_move_cc_2_wcnoc
+ 	:parameters (?b1 ?b2 - box ?c1  - content ?cr - carrier ?l1 - generic_location ?l2 - location ?r - robot) 
+ 	:task (get_to ?l2 ?r) 
+ 	:precondition (and
+	      ; check if not same locations
+	      (not 
+		  (= ?l1 ?l2)
+	      )
+	      ; boxes have not be the same (consequently also content are not the same)
+	      (not 
+		  (= ?b1 ?b2)
+	      )
+	      ; robot, box and content must be located at start 
+              (be_at_robot ?l1 ?r)
+              ; boxe position
+              (be_at_box ?b1 ?l1)
+              (be_at_box ?b2 ?l1)
+              ;contents position
+              (be_at_content ?c1 ?l1)
+              ;assignment carrier boxes 
+              (assigned_carrier_box ?b1 ?cr)
+              (assigned_carrier_box ?b2 ?cr)
+              ;assignment box contents 
+              (assigned_box_content ?b1 ?c1)
+              ; check carrier capacity
+              (carrier_capacity_2 ?cr)
+              (empty_box ?b2)
+	 ) 
+ 	:subtasks (and (task0 ( move_cc_2_wcnoc ?b1 ?b2 ?c1  ?cr ?l1 ?l2 ?r))) 
+    ) 
+    (:method m_get_to_move_cc_2_nocnoc
+ 	:parameters (?b1 ?b2 - box  ?cr - carrier ?l1 - generic_location ?l2 - generic_location ?r - robot) 
+ 	:task (get_to ?l2 ?r) 
+ 	:precondition (and
+	      ; check if not same locations
+	      (not 
+		  (= ?l1 ?l2)
+	      )
+	      ; boxes have not be the same (consequently also content are not the same)
+	      (not 
+		  (= ?b1 ?b2)
+	      )
+	      ; robot, box and content must be located at start 
+              (be_at_robot  ?l1 ?r)
+              ; boxe position
+              (be_at_box ?b1 ?l1)
+              (be_at_box ?b2 ?l1)
+              ;assignment carrier boxes 
+              (assigned_carrier_box  ?b1 ?cr)
+              (assigned_carrier_box ?b2 ?cr )
+              ; check carrier capacity
+              (carrier_capacity_2 ?cr)
+              ; check if empty box
+              (empty_box ?b1)
+              (empty_box ?b2)
+	 ) 
+ 	:subtasks (and (task0 (move_cc_2_nocnoc ?b1 ?b2 ?cr ?l1 ?l2 ?r))) 
+    ) 
+    
+    (:method m_get_to_move_cc_1_wcwcwc
+ 	:parameters (?b1 ?b2 ?b3 - box ?c1 ?c2 ?c3 - content ?cr - carrier ?l1 - generic_location ?l2 - location ?r - robot) 
+ 	:task (get_to ?l2 ?r) 
+ 	:precondition (and
+	      ; check if not same locations
+	      (not 
+		  (= ?l1 ?l2)
+	      )
+	      ; boxes have not be the same (consequently also content are not the same)
+	      (not 
+		  (= ?b1 ?b2)
+	      )
+	      (not 
+		  (= ?b1 ?b3)
+	      )
+	      (not 
+		  (= ?b2 ?b3)
+	      )
+	      ; robot, box and content must be located at start 
+              (be_at_robot ?l1 ?r)
+              ; boxe position
+              (be_at_box ?b1 ?l1)
+              (be_at_box ?b2 ?l1)
+              (be_at_box ?b3 ?l1)
+              ;contents position
+              (be_at_content ?c1 ?l1)
+              (be_at_content ?c2 ?l1)
+              (be_at_content ?c3 ?l1)
+              ;assignment carrier boxes 
+              (assigned_carrier_box ?b1 ?cr)
+              (assigned_carrier_box ?b2 ?cr)
+              (assigned_carrier_box ?b3 ?cr)
+              ;assignment box contents 
+              (assigned_box_content ?b1 ?c1)
+              (assigned_box_content ?b2 ?c2)
+              (assigned_box_content ?b3 ?c3)
+              (carrier_capacity_1 ?cr)
+	 ) 
+ 	:subtasks (and (task0 (move_cc_1_wcwcwc ?b1 ?b2 ?b3 ?c1 ?c2 ?c3 ?cr ?l1 ?l2 ?r))) 
+    ) 
+    (:method m_get_to_move_cc_1_wcwcnoc
+ 	:parameters (?b1 ?b2 ?b3 - box ?c1 ?c2  - content ?cr - carrier ?l1 - generic_location ?l2 - location ?r - robot) 
+ 	:task (get_to ?l2 ?r) 
+ 	:precondition (and
+	      ; check if not same locations
+	      (not 
+		  (= ?l1 ?l2)
+	      )
+	      ; boxes have not be the same (consequently also content are not the same)
+	      (not 
+		  (= ?b1 ?b2)
+	      )
+	      (not 
+		  (= ?b1 ?b3)
+	      )
+	      (not 
+		  (= ?b2 ?b3)
+	      )
+	      ; robot, box and content must be located at start 
+              (be_at_robot ?l1 ?r)
+              ; boxe position
+              (be_at_box ?b1 ?l1)
+              (be_at_box ?b2 ?l1)
+              (be_at_box ?b3 ?l1)
+              ;contents position
+              (be_at_content ?c1 ?l1)
+              (be_at_content ?c2 ?l1)
+              ;assignment carrier boxes 
+              (assigned_carrier_box ?b1 ?cr)
+              (assigned_carrier_box ?b2 ?cr)
+              (assigned_carrier_box ?b3 ?cr)
+              ;assignment box contents 
+              (assigned_box_content ?b1 ?c1)
+              (assigned_box_content ?b2 ?c2)
+              ; check carrier capacity
+              (carrier_capacity_1 ?cr)
+              ; check if box empty
+              (empty_box ?b3)
+	 ) 
+ 	:subtasks (and (task0 (move_cc_1_wcwcnoc ?b1 ?b2 ?b3 ?c1 ?c2  ?cr ?l1 ?l2 ?r))) 
+    ) 
+    (:method m_get_to_move_cc_1_wcnocnoc
+ 	:parameters (?b1 ?b2 ?b3 - box ?c1  - content ?cr - carrier ?l1 - generic_location ?l2 - location ?r - robot) 
+ 	:task (get_to ?l2 ?r) 
+ 	:precondition (and
+	      ; check if not same locations
+	      (not 
+		  (= ?l1 ?l2)
+	      )
+	      ; boxes have not be the same (consequently also content are not the same)
+	      (not 
+		  (= ?b1 ?b2)
+	      )
+	      (not 
+		  (= ?b1 ?b3)
+	      )
+	      (not 
+		  (= ?b2 ?b3)
+	      )
+	      ; robot, box and content must be located at start 
+              (be_at_robot ?l1 ?r)
+              ; boxe position
+              (be_at_box ?b1 ?l1)
+              (be_at_box ?b2 ?l1)
+              (be_at_box ?b3 ?l1)
+              ;contents position
+              (be_at_content ?c1 ?l1)
+              ;assignment carrier boxes 
+              (assigned_carrier_box ?b1 ?cr)
+              (assigned_carrier_box ?b2 ?cr)
+              (assigned_carrier_box ?b3 ?cr) 	      
+              ;assignment box contents 
+              (assigned_box_content ?b1 ?c1)
+              ; check carrier capacity
+              (carrier_capacity_1 ?cr)
+              ; check if empty box
+              (empty_box ?b2)
+              (empty_box ?b3)
+	 ) 
+ 	:subtasks (and (task0 (move_cc_1_wcnocnoc ?b1 ?b2 ?b3 ?c1 ?cr ?l1 ?l2 ?r))) 
+    ) 
+    (:method m_get_to_move_cc_1_nocnocnoc
+ 	:parameters (?b1 ?b2 ?b3 - box ?cr - carrier ?l1 ?l2 - generic_location ?r - robot) 
+ 	:task (get_to ?l2 ?r) 
+ 	:precondition (and
+	      ; check if not same locations
+	      (not 
+		  (= ?l1 ?l2)
+	      )
+	      ; boxes have not be the same (consequently also content are not the same)
+	      (not 
+		  (= ?b1 ?b2)
+	      )
+	      (not 
+		  (= ?b1 ?b3)
+	      )
+	      (not 
+		  (= ?b2 ?b3)
+	      )
+	      ; robot, box and content must be located at start 
+              (be_at_robot ?l1 ?r)
+              ; boxe position
+              (be_at_box ?b1 ?l1)
+              (be_at_box ?b2 ?l1)
+              (be_at_box ?b3 ?l1)             
+              ;assignment carrier boxes 
+              (assigned_carrier_box ?b1 ?cr)
+              (assigned_carrier_box ?b2 ?cr)
+              (assigned_carrier_box ?b3 ?cr) 	                  
+              ; check carrier capacity
+              (carrier_capacity_1 ?cr)
+              ; check if box empty
+              (empty_box ?b1)
+              (empty_box ?b2)
+              (empty_box ?b3)
+	 ) 
+ 	:subtasks (and (task0 (move_cc_1_nocnocnoc ?b1 ?b2 ?b3 ?cr ?l1 ?l2 ?r))) 
+    ) 
+   
+    
+    (:method m_get_to_move_cc_0_wcwcwcwc
+ 	:parameters (?b1 ?b2 ?b3 ?b4 - box ?c1 ?c2 ?c3 ?c4 - content ?cr - carrier ?l1 - generic_location ?l2 - location ?r - robot) 
+ 	:task (get_to ?l2 ?r) 
+ 	:precondition (and
+ 	      ; check if not same locations
+	      (not 
+		  (= ?l1 ?l2)
+	      )
+	      ; boxes have not be the same (consequently also content are not the same)
+	      (not 
+		  (= ?b1 ?b2)
+	      )
+	      (not 
+		  (= ?b1 ?b3)
+	      )
+	      (not 
+		  (= ?b2 ?b3)
+	      )
+	      (not 
+		  (= ?b2 ?b4)
+	      )
+	      (not 
+		  (= ?b1 ?b4)
+	      )
+	      (not 
+		  (= ?b3 ?b4)
+	      )
+	      ; robot, box and content must be located at start 
+              (be_at_robot ?l1 ?r)
+              ; boxe position
+              (be_at_box ?b1 ?l1)
+              (be_at_box ?b2 ?l1)
+              (be_at_box ?b3 ?l1)
+              (be_at_box ?b4 ?l1)
+              ;contents position
+              (be_at_content ?c1 ?l1)
+              (be_at_content ?c2 ?l1)
+              (be_at_content ?c3 ?l1)
+              (be_at_content ?c4 ?l1)
+              ;assignment carrier boxes 
+              (assigned_carrier_box ?b1 ?cr)
+              (assigned_carrier_box ?b2 ?cr)
+              (assigned_carrier_box ?b3 ?cr)
+              (assigned_carrier_box ?b4 ?cr)
+              ;assignment box contents 
+              (assigned_box_content ?b1 ?c1)
+              (assigned_box_content ?b2 ?c2)
+              (assigned_box_content ?b3 ?c3)
+              (assigned_box_content ?b4 ?c4)
+              (carrier_capacity_0 ?cr)
+	 ) 
+ 	:subtasks (and (task0 (move_cc_0_wcwcwcwc ?b1 ?b2 ?b3 ?b4 ?c1 ?c2 ?c3 ?c4 ?cr ?l1 ?l2 ?r))) 
+    ) 
+    (:method m_get_to_move_cc_0_wcwcwcnoc
+ 	:parameters (?b1 ?b2 ?b3 ?b4 - box ?c1 ?c2 ?c3 - content ?cr - carrier ?l1 - generic_location ?l2 - location ?r - robot) 
+ 	:task (get_to ?l2 ?r) 
+ 	:precondition (and
+ 	      ; check if not same locations
+	      (not 
+		  (= ?l1 ?l2)
+	      )
+	      ; boxes have not be the same (consequently also content are not the same)
+	      (not 
+		  (= ?b1 ?b2)
+	      )
+	      (not 
+		  (= ?b1 ?b3)
+	      )
+	      (not 
+		  (= ?b2 ?b3)
+	      )
+	      (not 
+		  (= ?b2 ?b4)
+	      )
+	      (not 
+		  (= ?b1 ?b4)
+	      )
+	      (not 
+		  (= ?b3 ?b4)
+	      )
+	      ; robot, box and content must be located at start 
+              (be_at_robot ?l1 ?r)
+              ; boxe position
+              (be_at_box ?b1 ?l1)
+              (be_at_box ?b2 ?l1)
+              (be_at_box ?b3 ?l1)
+              (be_at_box ?b4 ?l1)
+              ;contents position
+              (be_at_content ?c1 ?l1)
+              (be_at_content ?c2 ?l1)
+              (be_at_content ?c3 ?l1)
+              ;assignment carrier boxes 
+              (assigned_carrier_box ?b1 ?cr)
+              (assigned_carrier_box ?b2 ?cr)
+              (assigned_carrier_box ?b3 ?cr)
+              (assigned_carrier_box ?b4 ?cr)
+              ;assignment box contents 
+              (assigned_box_content ?b1 ?c1)
+              (assigned_box_content ?b2 ?c2)
+              (assigned_box_content ?b3 ?c3)
+              (carrier_capacity_0 ?cr)
+              (empty_box ?b4)
+	 ) 
+ 	:subtasks (and (task0 (move_cc_0_wcwcwcnoc ?b1 ?b2 ?b3 ?b4 ?c1 ?c2 ?c3  ?cr ?l1 ?l2 ?r))) 
+    ) 
+    (:method m_get_to_move_cc_0_wcwcnocnoc
+ 	:parameters (?b1 ?b2 ?b3 ?b4 - box ?c1 ?c2 - content ?cr - carrier ?l1 - generic_location ?l2 - location ?r - robot) 
+ 	:task (get_to ?l2 ?r) 
+ 	:precondition (and
+ 	      ; check if not same locations
+	      (not 
+		  (= ?l1 ?l2)
+	      )
+	      ; boxes have not be the same (consequently also content are not the same)
+	      (not 
+		  (= ?b1 ?b2)
+	      )
+	      (not 
+		  (= ?b1 ?b3)
+	      )
+	      (not 
+		  (= ?b2 ?b3)
+	      )
+	      (not 
+		  (= ?b2 ?b4)
+	      )
+	      (not 
+		  (= ?b1 ?b4)
+	      )
+	      (not 
+		  (= ?b3 ?b4)
+	      )
+	      ; robot, box and content must be located at start 
+              (be_at_robot ?l1 ?r)
+              ; boxe position
+              (be_at_box ?b1 ?l1)
+              (be_at_box ?b2 ?l1)
+	      (be_at_box ?b3 ?l1)
+              (be_at_box ?b4 ?l1)
+              ;contents position
+              (be_at_content ?c1 ?l1)
+              (be_at_content ?c2 ?l1)
+              ;assignment carrier boxes 
+              (assigned_carrier_box ?b1 ?cr)
+              (assigned_carrier_box ?b2 ?cr)
+              (assigned_carrier_box ?b3 ?cr)
+              (assigned_carrier_box ?b4 ?cr)
+              ;assignment box contents 
+              (assigned_box_content ?b1 ?c1)
+              (assigned_box_content ?b2 ?c2)
+	      ; check carrier capacity
+              (carrier_capacity_0 ?cr)
+              ; check if box empty
+              (empty_box ?b3)
+              (empty_box ?b4)
+	 ) 
+ 	:subtasks (and (task0 ( move_cc_0_wcwcnocnoc ?b1 ?b2 ?b3 ?b4 ?c1 ?c2  ?cr ?l1 ?l2 ?r))) 
+    ) 
+    (:method m_get_to_move_cc_0_wcnocnocnoc
+ 	:parameters (?b1 ?b2 ?b3 ?b4 - box ?c1  - content ?cr - carrier ?l1 - generic_location ?l2 - location ?r - robot) 
+ 	:task (get_to ?l2 ?r) 
+ 	:precondition (and
+ 	      ; check if not same locations
+	      (not 
+		  (= ?l1 ?l2)
+	      )
+	      ; boxes have not be the same (consequently also content are not the same)
+	      (not 
+		  (= ?b1 ?b2)
+	      )
+	      (not 
+		  (= ?b1 ?b3)
+	      )
+	      (not 
+		  (= ?b2 ?b3)
+	      )
+	      (not 
+		  (= ?b2 ?b4)
+	      )
+	      (not 
+		  (= ?b1 ?b4)
+	      )
+	      (not 
+		  (= ?b3 ?b4)
+	      )
+	      ; robot, box and content must be located at start 
+              (be_at_robot ?l1 ?r)
+              ; boxe position
+              (be_at_box ?b1 ?l1)
+              (be_at_box ?b2 ?l1)
+              (be_at_box ?b3 ?l1)
+              (be_at_box ?b4 ?l1)
+              ;contents position
+              (be_at_content ?c1 ?l1)
+              ;assignment carrier boxes 
+              (assigned_carrier_box ?b1 ?cr)
+              (assigned_carrier_box ?b2 ?cr)
+              (assigned_carrier_box ?b3 ?cr)
+              (assigned_carrier_box ?b4 ?cr)
+              ;assignment box contents 
+              (assigned_box_content ?b1 ?c1)
+	      ; check carrier capacity
+              (carrier_capacity_0 ?cr)
+              ; check if box empty
+              (empty_box ?b2)
+              (empty_box ?b3)
+              (empty_box ?b4)
+	 ) 
+ 	:subtasks (and (task0 (move_cc_0_wcnocnocnoc ?b1 ?b2 ?b3 ?b4 ?c1 ?cr ?l1 ?l2 ?r))) 
+    ) 
+    (:method m_get_to_move_cc_0_nocnocnocnoc
+ 	:parameters (?b1 ?b2 ?b3 ?b4 - box ?cr - carrier ?l1 - generic_location ?l2 - generic_location ?r - robot) 
+ 	:task (get_to ?l2 ?r) 
+ 	:precondition (and
+ 	      ; check if not same locations
+	      (not 
+		  (= ?l1 ?l2)
+	      )
+	      ; boxes have not be the same (consequently also content are not the same)
+	      (not 
+		  (= ?b1 ?b2)
+	      )
+	      (not 
+		  (= ?b1 ?b3)
+	      )
+	      (not 
+		  (= ?b2 ?b3)
+	      )
+	      (not 
+		  (= ?b2 ?b4)
+	      )
+	      (not 
+		  (= ?b1 ?b4)
+	      )
+	      (not 
+		  (= ?b3 ?b4)
+	      )
+	      ; robot, box and content must be located at start 
+              (be_at_robot ?l1 ?r)
+              ; boxe position
+              (be_at_box ?b1 ?l1)
+              (be_at_box ?b2 ?l1)
+              (be_at_box ?b3 ?l1)
+              (be_at_box ?b4 ?l1)             
+              ;assignment carrier boxes 
+              (assigned_carrier_box ?b1 ?cr)
+              (assigned_carrier_box ?b2 ?cr)
+              (assigned_carrier_box ?b3 ?cr)
+              (assigned_carrier_box ?b4 ?cr)
+              ; check carrier capacity
+              (carrier_capacity_0 ?cr)
+              ; check if box emptu
+              (empty_box ?b1)
+              (empty_box ?b2)
+              (empty_box ?b3)
+              (empty_box ?b4)
+	 ) 
+ 	:subtasks (and (task0 ( move_cc_0_nocnocnocnoc ?b1 ?b2 ?b3 ?b4 ?cr ?l1 ?l2 ?r))) 
+    ) 
+    
+    
+    ; METHOD SECTION - handling fill
+    
+    (:method m_fill
+	 :parameters (?b - box ?c - content ?l - generic_location ?r - robot) 
+	 :task (fill ?b ?c ?r)
+	 :precondition (and
+	      ; robot, box and content in same location
+              (be_at_robot ?l ?r)
+              (be_at_box ?b ?l)
+              (be_at_content ?c ?l)
+              ; box must be empty 
+              (empty_box ?b)
+              ; robot cannot steal content from box to other box 
+              (not_is_assigned ?c)
+              ; robot cannot act on content handled by other bot
+              (not_is_assigned_box ?b) 
+	  )  
+	  :subtasks (and (task0 (fill_box ?b ?c ?l ?r)))
+    ) 
+    
+    ; METHOD SECTION - handling assign
+        
+    (:method m_assigned
+	 :parameters (?b - box ?c - content ?cr - carrier ?l - generic_location ?p - person ?r - robot) 
+	 :task (assign_box ?b ?c ?l ?p ?r)
+	 :precondition (and
+	      ; robot, box, content, person at same location
+              (be_at_robot ?l ?r)
+              (be_at_box ?b ?l)
+              (be_at_content ?c ?l)
+              (be_at_person ?l ?p)
+              ; box contains content
+              (assigned_box_content ?b ?c)
+              ; box should not be contained in carrier (but instead delivered)
+              (not_assigned_carrier_box ?b ?cr)
+              (not_is_assigned_box ?b)
+	  )  
+	  :subtasks (and (task0 (empty ?b ?c ?cr ?l ?p ?r)))
+    ) 
+    
+
+    ; METHOD SECTION - handling loading
+    
+    (:method m_load_cc_4
+	 :parameters (?b - box ?cr - carrier ?l - generic_location ?r - robot) 
+	 :task (load ?b ?l ?r) 
+	 :precondition (and
+	    (be_at_robot ?l ?r)
+            (be_at_box ?b ?l)  
+            ; carrier not have this box assigned 
+            (not_assigned_carrier_box ?b ?cr)
+            (assigned_robot_carrier ?cr ?r) ;; carrier have to be assigned this robot 
+            (carrier_capacity_4 ?cr) ;; current capacity is 4 
+            (not_is_assigned_box ?b)
+            
+	 ) 
+	 :subtasks (and (task0 (pick_up_cc_4 ?b  ?cr ?l ?r)))
+    ) 
+    
+    (:method m_load_cc_3
+	 :parameters (?b - box ?cr - carrier ?l - generic_location ?r - robot) 
+	 :task (load ?b ?l ?r) 
+	 :precondition (and
+	    ; robot, box and content in same location
+            (be_at_robot ?l ?r)
+            (be_at_box ?b ?l)
+            ; carrier not have this box assigned 
+            (not_assigned_carrier_box ?b ?cr )
+            (assigned_robot_carrier ?cr ?r) ;; carrier have to be assigned this robot 
+            (carrier_capacity_3 ?cr) ;; current capacity is 4 
+            (not_is_assigned_box ?b)
+	 ) 
+	 :subtasks (and (task0 (pick_up_cc_3 ?b  ?cr ?l ?r)))
+    )
+    
+    (:method m_load_cc_2
+	 :parameters (?b - box ?cr - carrier ?l - generic_location ?r - robot) 
+	 :task (load ?b ?l ?r) 
+	 :precondition (and
+	    ; robot, box and content in same location
+            (be_at_robot ?l ?r)
+            (be_at_box ?b ?l)  
+            ; carrier not have this box assigned 
+            (not_assigned_carrier_box ?b ?cr)
+            (assigned_robot_carrier  ?cr ?r) ;; carrier have to be assigned this robot 
+            (carrier_capacity_2 ?cr) ;; current capacity is 4 
+            (not_is_assigned_box ?b)
+	 ) 
+	 :subtasks (and (task0 (pick_up_cc_2 ?b ?cr ?l ?r)))
+    )
+    
+    (:method m_load_cc_1
+	 :parameters (?b - box ?cr - carrier ?l - generic_location ?r - robot) 
+	 :task (load ?b ?l ?r) 
+	 :precondition (and
+	    ; robot, box and content in same location
+            (be_at_robot ?l ?r)
+            (be_at_box ?b ?l)
+            ; carrier not have this box assigned 
+            (not_assigned_carrier_box  ?b ?cr)
+            (assigned_robot_carrier ?cr ?r) ;; carrier have to be assigned this robot 
+            (carrier_capacity_1 ?cr) ;; current capacity is 4 
+            (not_is_assigned_box ?b)
+	 ) 
+	 :subtasks (and (task0 (pick_up_cc_1 ?b  ?cr ?l ?r)))
+    )
+        
+    ; METHOD SECTION - handling unload    
+    (:method m_unload_cc_3
+ 	:parameters (?b - box ?cr - carrier ?l - generic_location ?r - robot) 
+ 	:task (unload ?b ?l ?r)
+	:precondition (and
+            ; handling position that must be the same for object involved
+            (be_at_robot ?l ?r)
+            (be_at_box ?b ?l)
+            ; carrier must be assigned to robot 
+            (assigned_robot_carrier ?cr ?r)
+            ; box must be assigned to carrier
+            (assigned_carrier_box ?b ?cr)
+            ; parte carrier
+            (carrier_capacity_3 ?cr)
+ 	)  
+ 	:subtasks (and (task0 (drop_cc_3 ?b ?cr ?l  ?r)) ) 
+    ) 
+    
+    (:method m_unload_cc_2
+ 	:parameters (?b - box  ?cr - carrier ?l - generic_location ?r - robot) 
+ 	:task (unload ?b ?l ?r)
+	:precondition (and
+            ; handling position that must be the same for object involved
+            (be_at_robot ?l ?r)
+            (be_at_box ?b ?l)
+            ; carrier must be assigned to robot 
+            (assigned_robot_carrier ?cr ?r )
+            ; box must be assigned to carrier
+            (assigned_carrier_box  ?b ?cr)
+            ; parte carrier
+            (carrier_capacity_2 ?cr)
+ 	)  
+ 	:subtasks (and (task0 (drop_cc_2 ?b  ?cr ?l ?r))) 
+    )
+    
+    (:method m_unload_cc_1
+ 	:parameters (?b - box ?cr - carrier ?l - generic_location ?r - robot) 
+ 	:task (unload ?b ?l ?r)
+	:precondition (and
+            ; handling position that must be the same for object involved
+            (be_at_robot ?l ?r)
+            (be_at_box ?b ?l)
+            ; carrier must be assigned to robot 
+            (assigned_robot_carrier ?cr ?r)
+            ; box must be assigned to carrier
+            (assigned_carrier_box ?b ?cr)
+            ; parte carrier
+            (carrier_capacity_1 ?cr)
+ 	)  
+ 	:subtasks (and (task0 (drop_cc_1 ?b ?cr ?l ?r)) ) 
+    ) 
+    
+    (:method m_unload_cc_0
+ 	:parameters (?b - box ?cr - carrier ?l - generic_location ?r - robot) 
+ 	:task (unload ?b ?l ?r)
+	:precondition (and
+            ; handling position that must be the same for object involved
+            (be_at_robot ?l ?r)
+            (be_at_box ?b ?l)
+            ; carrier must be assigned to robot 
+            (assigned_robot_carrier ?cr ?r)
+            ; box must be assigned to carrier
+            (assigned_carrier_box ?b ?cr)
+            ; parte carrier
+            (carrier_capacity_0 ?cr)
+ 	)  
+ 	:subtasks (and (task0 (drop_cc_0 ?b ?cr ?l ?r))) 
+    ) 
+
+    
+    ; ACTION SECTION
+    
+    ; ACTION SECTION - handling boxes 
+    
+    (:action fill_box
+	:parameters (?b - box ?c - content ?l - generic_location ?r - robot)
+        :precondition (and
+            ; robot, box and content in same location
+            (be_at_robot ?l ?r)
+            (be_at_box ?b ?l)
+            (be_at_content ?c ?l)
+            ; box must be empty 
+            (empty_box ?b)
+            ; robot cannot steal content from box to other box 
+            (not_is_assigned ?c)
+            ; robot cannot act on content handled by other bot
+            (not_is_assigned_box ?b) 
+        )
+        :effect (and
+            ; after fill the box, the box no more empty 
+            (not
+                (empty_box ?b)
+            )
+            ; the content is then assigned  (ant set its negated corresponding predicate)
+            (is_assigned ?c)
+            (not
+                (not_is_assigned ?c)
+            )
+            ; box is now assigned 
+            (assigned_box_content ?b ?c)
+            (not
+                (not_assigned_box_content ?b ?c)
+            )
+        )     
+    )     
+    
+    ; ACTION SECTION - handling boxes - pick up
+    ; pick up when carrier capacity is 4
+    (:action pick_up_cc_4
+        :parameters (?b - box  ?cr - carrier ?l - generic_location ?r - robot)
+        :precondition (and
+            ; robot, box and content in same location
+            (be_at_robot ?l ?r)
+            (be_at_box ?b ?l)
+            ; carrier not have this box assigned 
+            (not_assigned_carrier_box ?b ?cr)
+            (assigned_robot_carrier ?cr ?r)    ;; carrier have to be assigned this robot 
+            (carrier_capacity_4 ?cr) ;; current capacity is 4 
+            (not_is_assigned_box ?b)
+        )
+        :effect (and
+            ; now carrier has this box assigned 
+            (assigned_carrier_box ?b ?cr )
+            (not
+                (not_assigned_carrier_box ?b ?cr )
+            )
+            ; decrease capacity
+            (carrier_capacity_3 ?cr)
+            (not
+                 (carrier_capacity_4 ?cr)
+            )
+            (not
+            	(not_is_assigned_box ?b)
+            )
+            (is_assigned_box ?b)
+        )     
+    )
+    ; pick up when carrier capacity is 3
+    (:action pick_up_cc_3
+        :parameters (?b - box ?cr - carrier ?l - generic_location ?r - robot)
+        :precondition (and
+            ; robot, box and content in same location
+            (be_at_robot ?l ?r)
+            (be_at_box ?b ?l)
+            ; carrier not have this box assigned 
+            (not_assigned_carrier_box ?b ?cr)
+            (assigned_robot_carrier ?cr ?r) ;; carrier have to be assigned this robot 
+            (carrier_capacity_3 ?cr) ;; current capacity is 4 
+            (not_is_assigned_box ?b)
+        )
+        :effect (and
+            ; now carrier has this box assigned 
+            (assigned_carrier_box ?b ?cr)
+            (not
+                (not_assigned_carrier_box ?b ?cr)
+            )
+            ; decrease capacity
+            (carrier_capacity_2 ?cr)
+            (not
+                 (carrier_capacity_3 ?cr)
+            )
+            (not
+            	(not_is_assigned_box ?b)
+            )
+            (is_assigned_box ?b)
+        )     
+    )
+    ; pick up when carrier capacity is 2
+    (:action pick_up_cc_2
+        :parameters (?b - box  ?cr - carrier ?l - generic_location ?r - robot)
+        :precondition (and
+            ; robot, box and content in same location
+            (be_at_robot ?l ?r)
+            (be_at_box ?b ?l)
+            ; carrier not have this box assigned 
+            (not_assigned_carrier_box ?b ?cr)
+            (assigned_robot_carrier ?cr ?r) ;; carrier have to be assigned this robot 
+            (carrier_capacity_2 ?cr) ;; current capacity is 4 
+            (not_is_assigned_box ?b)
+        )
+        :effect (and
+            ; now carrier has this box assigned 
+            (assigned_carrier_box ?b ?cr)
+            (not
+                (not_assigned_carrier_box  ?b ?cr)
+            )
+            ; decrease capacity
+            (carrier_capacity_1 ?cr)
+            (not
+                 (carrier_capacity_2 ?cr)
+            )
+            (not
+            	(not_is_assigned_box ?b)
+            )
+            (is_assigned_box ?b)
+        )     
+    )
+    ; pick up when carrier capacity is 1
+    (:action pick_up_cc_1
+        :parameters (?b - box ?cr - carrier ?l - generic_location ?r - robot)
+        :precondition (and
+            ; robot, box and content in same location
+            (be_at_robot ?l ?r )
+            (be_at_box ?b ?l)
+            ; carrier not have this box assigned 
+            (not_assigned_carrier_box ?b ?cr)
+            (assigned_robot_carrier ?cr ?r) ;; carrier have to be assigned this robot 
+            (carrier_capacity_1 ?cr) ;; current capacity is 4 
+            (not_is_assigned_box ?b)
+        )
+        :effect (and
+            ; now carrier has this box assigned 
+            (assigned_carrier_box ?b ?cr )
+            (not
+                (not_assigned_carrier_box ?b ?cr )
+            )
+            ; decrease capacity
+            (carrier_capacity_0 ?cr)
+            (not
+                 (carrier_capacity_1 ?cr)
+            )
+            (not
+            	(not_is_assigned_box ?b)
+            )
+            (is_assigned_box ?b)
+        )     
+    )
+    
+    ; ACTION SECTION - handling boxes - drop
+    
+    ;without content inside box
+    (:action drop_cc_3
+        :parameters (?b - box ?cr - carrier ?l - generic_location ?r - robot)
+        :precondition (and
+            ; handling position that must be the same for object involved
+            (be_at_robot ?l ?r)
+            (be_at_box ?b ?l)
+            ; carrier must be assigned to robot 
+            (assigned_robot_carrier ?cr ?r)
+            ; box must be assigned to carrier
+            (assigned_carrier_box  ?b ?cr)            
+            ; parte carrier
+            (carrier_capacity_3 ?cr)
+        )
+        :effect (and
+            ; carrier has no more box assigned 
+            (not
+                (assigned_carrier_box ?b ?cr)
+            )  
+            (not_assigned_carrier_box ?b ?cr)
+            ; parte carrier
+            (not
+                (carrier_capacity_3 ?cr)
+            ) 
+            (carrier_capacity_4 ?cr)
+            (not
+            	(is_assigned_box ?b)
+            )
+            (not_is_assigned_box ?b)                        
+        )
+    )
+    ; deliver with carry capacity 2
+    (:action drop_cc_2
+        :parameters (?b - box ?cr - carrier ?l - generic_location ?r - robot)
+        :precondition (and
+            ; handling position that must be the same for object involved
+            (be_at_robot ?l ?r )
+            (be_at_box ?b ?l)
+            ; carrier must be assigned to robot 
+            (assigned_robot_carrier ?cr ?r)
+            ; box must be assigned to carrier
+            (assigned_carrier_box ?b ?cr)            
+            ; parte carrier
+            (carrier_capacity_2 ?cr)
+        )
+        :effect (and
+            ; carrier has no more box assigned 
+            (not
+                (assigned_carrier_box ?b ?cr)
+            )  
+            (not_assigned_carrier_box ?b ?cr)
+            ; parte carrier
+            (not
+                (carrier_capacity_2 ?cr)
+            ) 
+            (carrier_capacity_3 ?cr)
+            (not
+            	(is_assigned_box ?b)
+            )
+            (not_is_assigned_box ?b)
+        )
+    )
+    ; deliver with carry capacity 1
+    (:action drop_cc_1
+        :parameters (?b - box ?cr - carrier ?l - generic_location ?r - robot)
+        :precondition (and
+            ; handling position that must be the same for object involved
+            (be_at_robot ?l ?r)
+            (be_at_box ?b ?l)
+            ; carrier must be assigned to robot 
+            (assigned_robot_carrier ?cr ?r)
+            ; box must be assigned to carrier
+            (assigned_carrier_box ?b ?cr)            
+            ; parte carrier
+            (carrier_capacity_1 ?cr)
+        )
+        :effect (and
+            ; carrier has no more box assigned 
+            (not
+                (assigned_carrier_box ?b ?cr)
+            )  
+            (not_assigned_carrier_box ?b ?cr)
+            ; parte carrier
+            (not
+                (carrier_capacity_1 ?cr)
+            ) 
+            (carrier_capacity_2 ?cr)
+            (not
+            	(is_assigned_box ?b)
+            )
+            (not_is_assigned_box ?b)
+
+        )
+    )
+    ; deliver with carry capacity 0
+    (:action drop_cc_0
+        :parameters (?b - box ?cr - carrier ?l - generic_location  ?r - robot)
+        :precondition (and
+            ; handling position that must be the same for object involved
+            (be_at_robot ?l ?r)
+            (be_at_box ?b ?l)
+            ; carrier must be assigned to robot 
+            (assigned_robot_carrier ?cr ?r)
+            ; box must be assigned to carrier
+            (assigned_carrier_box ?b ?cr)            
+            ; parte carrier
+            (carrier_capacity_0 ?cr)
+        )
+        :effect (and
+            ; carrier has no more box assigned 
+            (not
+                (assigned_carrier_box ?b ?cr)
+            )  
+            (not_assigned_carrier_box ?b ?cr)
+            ; parte carrier
+            (not
+                (carrier_capacity_0 ?cr)
+            ) 
+            (carrier_capacity_1 ?cr)
+            (not
+            	(is_assigned_box ?b)
+            )
+            (not_is_assigned_box ?b)
+
+        )
+    )
+    
+    ; empty box
+    (:action empty
+        :parameters (?b - box ?c - content ?cr - carrier ?l - generic_location ?p - person ?r - robot)
+        :precondition (and
+            ; robot, box, content, person at same location
+            (be_at_robot ?l ?r)
+            (be_at_box ?b ?l)
+            (be_at_content ?c ?l)
+            (be_at_person ?l ?p)
+            ; box contains content
+            (assigned_box_content ?b ?c)
+            ; box should not be contained in carrier (but instead delivered)
+            (not_assigned_carrier_box ?b ?cr)
+            (not_is_assigned_box ?b)            
+         )
+        :effect (and
+            ; box is no more related to content 
+            (not
+                (assigned_box_content ?b ?c)
+            )
+            (not_assigned_box_content ?b ?c)
+            ; content is now assigned to person 
+            (assigned_person_content ?c ?p)
+            (not  
+                (not_assigned_person_content ?c ?p)
+            )
+            (empty_box ?b)
+        )
+    )
+    
+    ; ACTION SECTION - handling movement 
+    
+    (:action move_cc_4
+        :parameters (?cr - carrier ?l1 - generic_location ?l2 - generic_location ?r - robot)
+        :precondition (and
+            ; check if not same locations
+	    (not 
+	        (= ?l1 ?l2)
+	    )
+            ; robot must be located at start 
+            (be_at_robot ?l1 ?r)
+            ; robot must be empty
+            (carrier_capacity_4 ?cr)
+        )
+        :effect (and
+            ;robot no more at start...
+            (not
+                (be_at_robot ?l1 ?r)
+            )
+            ; but it is at the end 
+            (be_at_robot ?l2 ?r)
+        )     
+    )
+
+    ; move when only single box carried 
+    (:action move_cc_3_wc
+        :parameters (?b - box ?c - content ?cr - carrier  ?l1 - generic_location ?l2 - location ?r - robot)
+        :precondition (and
+            ; check if not same locations
+	    (not 
+	        (= ?l1 ?l2)
+	    )
+            ; robot, box and content must be located at start 
+            (be_at_robot ?l1 ?r)
+            (be_at_box ?b ?l1)
+            (be_at_content ?c ?l1)
+            (assigned_carrier_box  ?b ?cr)
+            (assigned_box_content ?b ?c)
+            (carrier_capacity_3 ?cr)
+        )
+        :effect (and
+            ; update robot position 
+            (not
+                (be_at_robot ?l1 ?r)
+            )
+            (be_at_robot ?l2 ?r)
+            ; update content position
+            (not
+                (be_at_content ?c ?l1)
+            )
+            (be_at_content ?c ?l2)
+            ; update box position  
+            (not
+                (be_at_box ?b ?l1)
+            )
+            (be_at_box ?b ?l2)
+        )         
+    )
+    (:action move_cc_3_noc
+        :parameters (?b - box  ?cr - carrier  ?l1 - generic_location ?l2 - generic_location ?r - robot)
+        :precondition (and
+            ; check if not same locations
+	    (not 
+	        (= ?l1 ?l2)
+	    )
+            ; robot, box and content must be located at start 
+            (be_at_robot ?l1 ?r)
+            (be_at_box ?b ?l1)
+            (assigned_carrier_box  ?b ?cr)
+            (carrier_capacity_3 ?cr)
+            (empty_box ?b)
+        )
+        :effect (and
+            ; update robot position 
+            (not
+                (be_at_robot ?l1 ?r)
+            )
+            (be_at_robot ?l2 ?r)
+            ; update box position  
+            (not
+                (be_at_box ?b ?l1)
+            )
+            (be_at_box ?b ?l2)
+        )         
+    )
+    
+    ; move when two box carried 
+    (:action move_cc_2_wcwc
+        :parameters (?b1 ?b2 - box ?c1 ?c2 - content ?cr - carrier ?l1 - generic_location ?l2 - location ?r - robot)
+        :precondition (and
+            ; check if not same locations
+	    (not 
+	        (= ?l1 ?l2)
+	    )
+	    ; boxes have not be the same (consequently also content are not the same)
+	    (not 
+		(= ?b1 ?b2)
+	    )	   
+            ; robot, box and content must be located at start 
+            (be_at_robot ?l1 ?r)
+            ; boxe position
+            (be_at_box ?b1 ?l1)
+            (be_at_box ?b2 ?l1)
+            ;contents position
+            (be_at_content ?c1 ?l1)
+            (be_at_content ?c2 ?l1)
+            ;assignment carrier boxes 
+            (assigned_carrier_box ?b1 ?cr)
+            (assigned_carrier_box ?b2 ?cr)
+            ;assignment box contents 
+            (assigned_box_content ?b1 ?c1)
+            (assigned_box_content ?b2 ?c2)
+            (carrier_capacity_2 ?cr)
+        )
+        :effect (and
+            ; update robot position 
+            (not
+                (be_at_robot ?l1 ?r)
+            )
+            (be_at_robot ?l2 ?r)
+            ; update contents position
+            (not
+                (be_at_content ?c1 ?l1)
+            )
+            (be_at_content ?c1 ?l2)
+            (not
+                (be_at_content ?c2 ?l1)
+            )
+            (be_at_content ?c2 ?l2)
+            ; update boxes position  
+            (not
+                (be_at_box ?b1 ?l1)
+            )
+            (be_at_box ?b1 ?l2)
+            (not
+                (be_at_box ?b2 ?l1)
+            )
+            (be_at_box ?b2 ?l2)
+        )         
+    )
+    ; move when two box carried 
+    (:action move_cc_2_nocnoc
+        :parameters (?b1 ?b2 - box  ?cr - carrier ?l1 - generic_location ?l2 - generic_location ?r - robot)
+        :precondition (and
+            ; check if not same locations
+	    (not 
+	        (= ?l1 ?l2)
+	    )
+	    ; boxes have not be the same (consequently also content are not the same)
+	    (not 
+		(= ?b1 ?b2)
+	    )	   
+            ; robot, box and content must be located at start 
+            (be_at_robot ?l1 ?r)
+            ; boxe position
+            (be_at_box ?b1 ?l1)
+            (be_at_box ?b2 ?l1)
+            ;assignment carrier boxes 
+            (assigned_carrier_box ?b1 ?cr)
+            (assigned_carrier_box ?b2 ?cr)
+            (carrier_capacity_2 ?cr)
+            (empty_box ?b1)
+            (empty_box ?b2)
+        )
+        :effect (and
+            ; update robot position 
+            (not
+                (be_at_robot ?l1 ?r )
+            )
+            (be_at_robot ?l2 ?r )
+            ; update boxes position  
+            (not
+                (be_at_box ?b1 ?l1)
+            )
+            (be_at_box ?b1 ?l2)
+            (not
+                (be_at_box ?b2 ?l1)
+            )
+            (be_at_box ?b2 ?l2)
+        )         
+    )
+    ; move when two box carried 
+    (:action move_cc_2_wcnoc
+        :parameters (?b1 ?b2 - box ?c1 - content ?cr - carrier ?l1 - generic_location ?l2 - location ?r - robot)
+        :precondition (and
+            ; check if not same locations
+	    (not 
+	        (= ?l1 ?l2)
+	    )
+	    ; boxes have not be the same (consequently also content are not the same)
+	    (not 
+		(= ?b1 ?b2)
+	    )	   
+            ; robot, box and content must be located at start 
+            (be_at_robot ?l1 ?r)
+            ; boxe position
+            (be_at_box ?b1 ?l1)
+            (be_at_box ?b2 ?l1)
+            ;assignment box content 
+            (assigned_box_content ?b1 ?c1)
+            ;assignment carrier boxes 
+            (assigned_carrier_box ?b1 ?cr)
+            (assigned_carrier_box ?b2 ?cr)
+            (carrier_capacity_2 ?cr)            
+            ; check if box empty
+            (empty_box ?b2)
+        )
+        :effect (and
+            ; update robot position 
+            (not
+                (be_at_robot ?l1 ?r)
+            )
+            (be_at_robot ?l2 ?r)
+            ; update contents position
+            (not
+                (be_at_content ?c1 ?l1)
+            )
+            (be_at_content ?c1 ?l2)
+            ; update boxes position  
+            (not
+                (be_at_box ?b1 ?l1)
+            )
+            (be_at_box ?b1 ?l2)
+            (not
+                (be_at_box ?b2 ?l1)
+            )
+            (be_at_box ?b2 ?l2)
+        )         
+    )
+    
+    
+    ; move when three box carried 
+    (:action move_cc_1_wcwcwc
+        :parameters (?b1 ?b2 ?b3 - box ?c1 ?c2 ?c3 - content ?cr - carrier  ?l1 - generic_location ?l2 - location ?r - robot)
+        :precondition (and
+            ; check if not same locations
+	    (not 
+	        (= ?l1 ?l2)
+	    )
+	    ; boxes have not be the same (consequently also content are not the same)
+	    (not 
+		(= ?b1 ?b2)
+	    )
+	    (not 
+		(= ?b1 ?b3)
+	    )
+	    (not 
+		(= ?b2 ?b3)
+	    )
+            ; robot, box and content must be located at start 
+            (be_at_robot ?l1 ?r)
+            ; boxe position
+            (be_at_box ?b1 ?l1)
+            (be_at_box ?b2 ?l1)
+            (be_at_box ?b3 ?l1)
+            ;contents position
+            (be_at_content ?c1 ?l1)
+            (be_at_content ?c2 ?l1)
+            (be_at_content ?c3 ?l1)
+            ;assignment carrier boxes 
+            (assigned_carrier_box ?b1 ?cr)
+            (assigned_carrier_box ?b2 ?cr)
+            (assigned_carrier_box ?b3 ?cr)
+            ;assignment box contents 
+            (assigned_box_content ?b1 ?c1)
+            (assigned_box_content ?b2 ?c2)
+            (assigned_box_content ?b3 ?c3)
+            (carrier_capacity_1 ?cr)
+        )
+        :effect (and
+            ; update robot position 
+            (not
+                (be_at_robot  ?l1 ?r)
+            )
+            (be_at_robot ?l2 ?r)
+            ; update contents position
+            (not
+                (be_at_content ?c1 ?l1)
+            )
+            (be_at_content ?c1 ?l2)
+            (not
+                (be_at_content ?c2 ?l1)
+            )
+            (be_at_content ?c2 ?l2)
+            (not
+                (be_at_content ?c3 ?l1)
+            )
+            (be_at_content ?c3 ?l2)
+            ; update boxes position  
+            (not
+                (be_at_box ?b1 ?l1)
+            )
+            (be_at_box ?b1 ?l2)
+            (not
+                (be_at_box ?b2 ?l1)
+            )
+            (be_at_box ?b2 ?l2)
+            (not
+                (be_at_box ?b3 ?l1)
+            )
+            (be_at_box ?b3 ?l2)
+        )         
+    )
+    (:action move_cc_1_nocnocnoc
+        :parameters (?b1 ?b2 ?b3 - box  ?cr - carrier  ?l1 - generic_location ?l2 - generic_location ?r - robot)
+        :precondition (and
+            ; check if not same locations
+	    (not 
+	        (= ?l1 ?l2)
+	    )
+	    ; boxes have not be the same (consequently also content are not the same)
+	    (not 
+		(= ?b1 ?b2)
+	    )
+	    (not 
+		(= ?b1 ?b3)
+	    )
+	    (not 
+		(= ?b2 ?b3)
+	    )
+            ; robot, box and content must be located at start 
+            (be_at_robot ?r ?l1)
+            ; boxe position
+            (be_at_box ?b1 ?l1)
+            (be_at_box ?b2 ?l1)
+            (be_at_box ?b3 ?l1)  
+            ;assignment carrier boxes 
+            (assigned_carrier_box ?b1 ?cr)
+            (assigned_carrier_box ?b2 ?cr)
+            (assigned_carrier_box ?b3 ?cr)
+            (carrier_capacity_1 ?cr)
+            ; check if box are empty
+            (empty_box ?b1)
+            (empty_box ?b2)
+            (empty_box ?b3)
+        )
+        :effect (and
+            ; update robot position 
+            (not
+                (be_at_robot  ?l1 ?r)
+            )
+            (be_at_robot ?l2 ?r)           
+            ; update boxes position  
+            (not
+                (be_at_box ?b1 ?l1)
+            )
+            (be_at_box ?b1 ?l2)
+            (not
+                (be_at_box ?b2 ?l1)
+            )
+            (be_at_box ?b2 ?l2)
+            (not
+                (be_at_box ?b3 ?l1)
+            )
+            (be_at_box ?b3 ?l2)
+        )         
+    )
+    (:action move_cc_1_wcnocnoc
+        :parameters (?b1 ?b2 ?b3 - box ?c1  - content ?cr - carrier  ?l1 - generic_location ?l2 - location ?r - robot)
+        :precondition (and
+            ; check if not same locations
+	    (not 
+	        (= ?l1 ?l2)
+	    )
+	    ; boxes have not be the same (consequently also content are not the same)
+	    (not 
+		(= ?b1 ?b2)
+	    )
+	    (not 
+		(= ?b1 ?b3)
+	    )
+	    (not 
+		(= ?b2 ?b3)
+	    )
+            ; robot, box and content must be located at start 
+            (be_at_robot  ?l1 ?r )
+            ; boxe position
+            (be_at_box ?b1 ?l1)
+            (be_at_box ?b2 ?l1)
+            (be_at_box ?b3 ?l1)
+            ;contents position
+            (be_at_content ?c1 ?l1)
+            ;assignment carrier boxes 
+            (assigned_carrier_box ?b1 ?cr)
+            (assigned_carrier_box ?b2 ?cr)
+            (assigned_carrier_box ?b3 ?cr)
+            ;assignment box contents 
+            (assigned_box_content ?b1 ?c1)
+            ; check carrier capacity
+            (carrier_capacity_1 ?cr)
+            ; check if box are empty
+            (empty_box ?b2)
+            (empty_box ?b3)
+        )
+        :effect (and
+            ; update robot position 
+            (not
+                (be_at_robot  ?l1 ?r)
+            )
+            (be_at_robot ?l2 ?r )
+            ; update contents position
+            (not
+                (be_at_content ?c1 ?l1)
+            )
+            (be_at_content ?c1 ?l2)            
+            ; update boxes position  
+            (not
+                (be_at_box ?b1 ?l1)
+            )
+            (be_at_box ?b1 ?l2)
+            (not
+                (be_at_box ?b2 ?l1)
+            )
+            (be_at_box ?b2 ?l2)
+            (not
+                (be_at_box ?b3 ?l1)
+            )
+            (be_at_box ?b3 ?l2)
+        )         
+    )
+    ; move when three box carried 
+    (:action move_cc_1_wcwcnoc
+        :parameters (?b1 ?b2 ?b3 - box ?c1 ?c2  - content ?cr - carrier  ?l1 - generic_location ?l2 - location ?r - robot)
+        :precondition (and
+            ; check if not same locations
+	    (not 
+	        (= ?l1 ?l2)
+	    )
+	    ; boxes have not be the same (consequently also content are not the same)
+	    (not 
+		(= ?b1 ?b2)
+	    )
+	    (not 
+		(= ?b1 ?b3)
+	    )
+	    (not 
+		(= ?b2 ?b3)
+	    )
+            ; robot, box and content must be located at start 
+            (be_at_robot ?r ?l1)
+            ; boxe position
+            (be_at_box ?b1 ?l1)
+            (be_at_box ?b2 ?l1)
+            (be_at_box ?b3 ?l1)
+            ;contents position
+            (be_at_content ?c1 ?l1)
+            (be_at_content ?c2 ?l1)
+            ;assignment carrier boxes 
+            (assigned_carrier_box  ?b1 ?cr)
+            (assigned_carrier_box ?b2 ?cr)
+            (assigned_carrier_box ?b3 ?cr)
+            ;assignment box contents 
+            (assigned_box_content ?b1 ?c1)
+            (assigned_box_content ?b2 ?c2)
+            ; check carrier capacity
+            (carrier_capacity_1 ?cr)            
+            ; check if empty box
+            (empty_box ?b3)
+        )
+        :effect (and
+            ; update robot position 
+            (not
+                (be_at_robot  ?l1 ?r)
+            )
+            (be_at_robot ?l2 ?r )
+            ; update contents position
+            (not
+                (be_at_content ?c1 ?l1)
+            )
+            (be_at_content ?c1 ?l2)
+            (not
+                (be_at_content ?c2 ?l1)
+            )
+            (be_at_content ?c2 ?l2)            
+            ; update boxes position  
+            (not
+                (be_at_box ?b1 ?l1)
+            )
+            (be_at_box ?b1 ?l2)
+            (not
+                (be_at_box ?b2 ?l1)
+            )
+            (be_at_box ?b2 ?l2)
+            (not
+                (be_at_box ?b3 ?l1)
+            )
+            (be_at_box ?b3 ?l2)
+        )         
+    )
+    
+    ; move when four box carried 
+    ; here is possible to move to generic location as result of movement (return to depot)
+    (:action move_cc_0_wcwcwcwc
+        :parameters (?b1 ?b2 ?b3 ?b4 - box ?c1 ?c2 ?c3 ?c4 - content  ?cr - carrier ?l1 - generic_location ?l2 - location ?r - robot)
+        :precondition (and
+            ; check if not same locations
+	    (not 
+	        (= ?l1 ?l2)
+	    )
+	    ; boxes have not be the same (consequently also content are not the same)
+	    (not 
+		(= ?b1 ?b2)
+	    )
+	    (not 
+		(= ?b1 ?b3)
+	    )
+	    (not 
+		(= ?b2 ?b3)
+	    )
+	    (not 
+		(= ?b2 ?b4)
+	    )
+	    (not 
+		(= ?b1 ?b4)
+	    )
+	    (not 
+		(= ?b3 ?b4)
+	    )
+            ; robot, box and content must be located at start 
+            (be_at_robot ?l1 ?r )
+            ; boxe position
+            (be_at_box ?b1 ?l1)
+            (be_at_box ?b2 ?l1)
+            (be_at_box ?b3 ?l1)
+            (be_at_box ?b4 ?l1)
+            ;contents position
+            (be_at_content ?c1 ?l1)
+            (be_at_content ?c2 ?l1)
+            (be_at_content ?c3 ?l1)
+            (be_at_content ?c4 ?l1)
+            ;assignment carrier boxes 
+            (assigned_carrier_box ?b1 ?cr)
+            (assigned_carrier_box ?b2 ?cr)
+            (assigned_carrier_box ?b3 ?cr)
+            (assigned_carrier_box ?b4 ?cr)
+            ;assignment box contents 
+            (assigned_box_content ?b1 ?c1)
+            (assigned_box_content ?b2 ?c2)
+            (assigned_box_content ?b3 ?c3)
+            (assigned_box_content ?b4 ?c4)
+            (carrier_capacity_0 ?cr)
+        )
+        :effect (and
+            ; update robot position 
+            (not
+                (be_at_robot ?l1 ?r )
+            )
+            (be_at_robot ?l2 ?r )
+            ; update contents position
+            (not
+                (be_at_content ?c1 ?l1)
+            )
+            (be_at_content ?c1 ?l2)
+            (not
+                (be_at_content ?c2 ?l1)
+            )
+            (be_at_content ?c2 ?l2)
+            (not
+                (be_at_content ?c3 ?l1)
+            )
+            (be_at_content ?c3 ?l2)
+            (not
+                (be_at_content ?c4 ?l1)
+            )
+            (be_at_content ?c4 ?l2)
+            ; update boxes position  
+            (not
+                (be_at_box ?b1 ?l1)
+            )
+            (be_at_box ?b1 ?l2)
+            (not
+                (be_at_box ?b2 ?l1)
+            )
+            (be_at_box ?b2 ?l2)
+            (not
+                (be_at_box ?b3 ?l1)
+            )
+            (be_at_box ?b3 ?l2)
+            (not
+                (be_at_box ?b4 ?l1)
+            )
+            (be_at_box ?b4 ?l2)
+        )         
+    )
+    (:action move_cc_0_nocnocnocnoc
+        :parameters (?b1 ?b2 ?b3 ?b4 - box  ?cr - carrier ?l1 - generic_location ?l2 - generic_location ?r - robot)
+        :precondition (and
+            ; check if not same locations
+	    (not 
+	        (= ?l1 ?l2)
+	    )
+	    ; boxes have not be the same (consequently also content are not the same)
+	    (not 
+		(= ?b1 ?b2)
+	    )
+	    (not 
+		(= ?b1 ?b3)
+	    )
+	    (not 
+		(= ?b2 ?b3)
+	    )
+	    (not 
+		(= ?b2 ?b4)
+	    )
+	    (not 
+		(= ?b1 ?b4)
+	    )
+	    (not 
+		(= ?b3 ?b4)
+	    )
+            ; robot, box and content must be located at start 
+            (be_at_robot  ?l1 ?r)
+            ; boxe position
+            (be_at_box ?b1 ?l1)
+            (be_at_box ?b2 ?l1)
+            (be_at_box ?b4 ?l1)
+            (be_at_box ?b3 ?l1)
+            ;assignment carrier boxes 
+            (assigned_carrier_box ?b1 ?cr)
+            (assigned_carrier_box ?b2 ?cr)
+            (assigned_carrier_box ?b3 ?cr)
+            (assigned_carrier_box ?b4 ?cr)
+            ; check carrier capacity
+            (carrier_capacity_0 ?cr)
+            ; check if empty box
+            (empty_box ?b1)
+            (empty_box ?b2)
+            (empty_box ?b3)
+            (empty_box ?b4)
+        )
+        :effect (and
+            ; update robot position 
+            (not
+                (be_at_robot ?l1 ?r )
+            )
+            (be_at_robot ?l2 ?r )           
+            ; update boxes position  
+            (not
+                (be_at_box ?b1 ?l1)
+            )
+            (be_at_box ?b1 ?l2)
+            (not
+                (be_at_box ?b2 ?l1)
+            )
+            (be_at_box ?b2 ?l2)
+            (not
+                (be_at_box ?b3 ?l1)
+            )
+            (be_at_box ?b3 ?l2)
+            (not
+                (be_at_box ?b4 ?l1)
+            )
+            (be_at_box ?b4 ?l2)
+        )         
+    )     
+    (:action move_cc_0_wcnocnocnoc
+        :parameters (?b1 ?b2 ?b3 ?b4 - box ?c1  - content  ?cr - carrier ?l1 - generic_location ?l2 - location ?r - robot)
+        :precondition (and
+            ; check if not same locations
+	    (not 
+	        (= ?l1 ?l2)
+	    )
+	    ; boxes have not be the same (consequently also content are not the same)
+	    (not 
+		(= ?b1 ?b2)
+	    )
+	    (not 
+		(= ?b1 ?b3)
+	    )
+	    (not 
+		(= ?b2 ?b3)
+	    )
+	    (not 
+		(= ?b2 ?b4)
+	    )
+	    (not 
+		(= ?b1 ?b4)
+	    )
+	    (not 
+		(= ?b3 ?b4)
+	    )
+            ; robot, box and content must be located at start 
+            (be_at_robot ?l1 ?r )
+            ; boxe position
+            (be_at_box ?b1 ?l1)
+            (be_at_box ?b2 ?l1)
+            (be_at_box ?b4 ?l1)
+            (be_at_box ?b3 ?l1)
+            ;contents position
+            (be_at_content ?c1 ?l1) 
+            ;assignment carrier boxes 
+            (assigned_carrier_box ?b1 ?cr)
+            (assigned_carrier_box ?b2 ?cr)
+            (assigned_carrier_box ?b3 ?cr)
+            (assigned_carrier_box ?b4 ?cr)
+            ;assignment box contents 
+            (assigned_box_content ?b1 ?c1)
+            ; check capacity
+            (carrier_capacity_0 ?cr)            
+            ; check if empty box
+            (empty_box ?b2)
+            (empty_box ?b3)
+            (empty_box ?b4)
+        )
+        :effect (and
+            ;; update robot position 
+            (not
+                (be_at_robot ?l1 ?r )
+            )
+            (be_at_robot ?l2 ?r )
+            ;; update contents position
+            (not
+                (be_at_content ?c1 ?l1)
+            )
+            (be_at_content ?c1 ?l2)
+            
+            ;; update boxes position  
+            (not
+                (be_at_box ?b1 ?l1)
+            )
+            (be_at_box ?b1 ?l2)
+            (not
+                (be_at_box ?b2 ?l1)
+            )
+            (be_at_box ?b2 ?l2)
+            (not
+                (be_at_box ?b3 ?l1)
+            )
+            (be_at_box ?b3 ?l2)
+            (not
+                (be_at_box ?b4 ?l1)
+            )
+            (be_at_box ?b4 ?l2)
+        )         
+    ) 
+    (:action move_cc_0_wcwcnocnoc
+        :parameters (?b1 ?b2 ?b3 ?b4 - box ?c1 ?c2  - content  ?cr - carrier ?l1 - generic_location ?l2 - location ?r - robot)
+        :precondition (and
+            ; check if not same locations
+	    (not 
+	        (= ?l1 ?l2)
+	    )
+	    ; boxes have not be the same (consequently also content are not the same)
+	    (not 
+		(= ?b1 ?b2)
+	    )
+	    (not 
+		(= ?b1 ?b3)
+	    )
+	    (not 
+		(= ?b2 ?b3)
+	    )
+	    (not 
+		(= ?b2 ?b4)
+	    )
+	    (not 
+		(= ?b1 ?b4)
+	    )
+	    (not 
+		(= ?b3 ?b4)
+	    )
+            ; robot, box and content must be located at start 
+            (be_at_robot  ?l1 ?r)
+            ; boxe position
+            (be_at_box ?b1 ?l1)
+            (be_at_box ?b2 ?l1)
+            (be_at_box ?b4 ?l1)
+            (be_at_box ?b3 ?l1)
+            ;contents position
+            (be_at_content ?c1 ?l1)
+            (be_at_content ?c2 ?l1)
+            ;assignment carrier boxes 
+            (assigned_carrier_box ?b1 ?cr)
+            (assigned_carrier_box ?b2 ?cr)
+            (assigned_carrier_box ?b3 ?cr)
+            (assigned_carrier_box ?b4 ?cr)
+            ;assignment box contents 
+            (assigned_box_content ?b1 ?c1)
+            (assigned_box_content ?b2 ?c2)
+            ; check capacity
+            (carrier_capacity_0 ?cr)            
+            ; boxes should be empty
+            (empty_box ?b3)
+            (empty_box ?b4)
+        )
+        :effect (and
+            ; update robot position 
+            (not
+                (be_at_robot ?l1 ?r)
+            )
+            (be_at_robot ?l2 ?r)
+            ; update contents position
+            (not
+                (be_at_content ?c1 ?l1)
+            )
+            (be_at_content ?c1 ?l2)
+            (not
+                (be_at_content ?c2 ?l1)
+            )
+            (be_at_content ?c2 ?l2)            
+            ; update boxes position  
+            (not
+                (be_at_box ?b1 ?l1)
+            )
+            (be_at_box ?b1 ?l2)
+            (not
+                (be_at_box ?b2 ?l1)
+            )
+            (be_at_box ?b2 ?l2)
+            (not
+                (be_at_box ?b3 ?l1)
+            )
+            (be_at_box ?b3 ?l2)
+            (not
+                (be_at_box ?b4 ?l1)
+            )
+            (be_at_box ?b4 ?l2)
+        )         
+    )
+    (:action move_cc_0_wcwcwcnoc
+        :parameters (?b1 ?b2 ?b3 ?b4 - box ?c1 ?c2 ?c3 - content  ?cr - carrier ?l1 - generic_location ?l2 - location ?r - robot)
+        :precondition (and
+            ; check if not same locations
+	    (not 
+	        (= ?l1 ?l2)
+	    )
+	    ; boxes have not be the same (consequently also content are not the same)
+	    (not 
+		(= ?b1 ?b2)
+	    )
+	    (not 
+		(= ?b1 ?b3)
+	    )
+	    (not 
+		(= ?b2 ?b3)
+	    )
+	    (not 
+		(= ?b2 ?b4)
+	    )
+	    (not 
+		(= ?b1 ?b4)
+	    )
+	    (not 
+		(= ?b3 ?b4)
+	    )
+            ; robot, box and content must be located at start 
+            (be_at_robot ?l1 ?r)
+            ; boxe position
+            (be_at_box ?b1 ?l1)
+            (be_at_box ?b2 ?l1)
+            (be_at_box ?b4 ?l1)
+            (be_at_box ?b3 ?l1)
+            ;contents position
+            (be_at_content ?c1 ?l1)
+            (be_at_content ?c2 ?l1)
+            (be_at_content ?c3 ?l1)
+            ;assignment carrier boxes 
+            (assigned_carrier_box ?b1 ?cr)
+            (assigned_carrier_box ?b2 ?cr)
+            (assigned_carrier_box ?b3 ?cr)
+            (assigned_carrier_box ?b4 ?cr)
+            ;assignment box contents 
+            (assigned_box_content ?b1 ?c1)
+            (assigned_box_content ?b2 ?c2)
+            (assigned_box_content ?b3 ?c3)
+            ; check carrier capacity
+            (carrier_capacity_0 ?cr)
+            ; check if box is empty
+            (empty_box ?b4)
+        )
+        :effect (and
+            ; update robot position 
+            (not
+                (be_at_robot ?l1 ?r)
+            )
+            (be_at_robot ?l2 ?r)
+            ; update contents position
+            (not
+                (be_at_content ?c1 ?l1)
+            )
+            (be_at_content ?c1 ?l2)
+            (not
+                (be_at_content ?c2 ?l1)
+            )
+            (be_at_content ?c2 ?l2)
+            (not
+                (be_at_content ?c3 ?l1)
+            )
+            (be_at_content ?c3 ?l2)
+
+            ;; update boxes position  
+            (not
+                (be_at_box ?b1 ?l1)
+            )
+            (be_at_box ?b1 ?l2)
+            (not
+                (be_at_box ?b2 ?l1)
+            )
+            (be_at_box ?b2 ?l2)
+            (not
+                (be_at_box ?b3 ?l1)
+            )
+            (be_at_box ?b3 ?l2)
+            (not
+                (be_at_box ?b4 ?l1)
+            )
+            (be_at_box ?b4 ?l2)
+        )         
+    )
+     
+    (:action noop
+	:parameters (?r - robot)
+	:precondition () 
+	:effect () 
+    )
+
+) 
+    

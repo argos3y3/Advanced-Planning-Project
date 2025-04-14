@@ -29,13 +29,13 @@
         (be_at_robot depot1 robot1)
         ; people initial position
         (be_at_person location1 person1)
-        (be_at_person location1 person2)     
+        (be_at_person location1 person2) 
         ; box initial empty
         (empty_box box1)
         (empty_box box2)
         (empty_box box3)       
         ; set capacity
-        (carrier_capacity_4 carrier1)
+        (= (carrier_capacity carrier1) 4)
         ; assign carrier
         (assigned_robot_carrier  carrier1 robot1)
     )

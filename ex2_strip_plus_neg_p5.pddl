@@ -19,6 +19,7 @@
         ; all box, content, agent at depot1 initially
         ; box initial position
         (be_at_box box1 depot1)
+       
         ; content initial position
         (be_at_content content1 depot1)
         (be_at_content content2 depot1)
@@ -33,10 +34,9 @@
         (be_at_person location2 person2)
         (be_at_person location2 person3)
         ; box initial empty
-        (empty_box box1)
-       
+        (empty_box box1)       
         ; set capacity
-        (carrier_capacity_4 carrier1)
+        (= (carrier_capacity carrier1) 4)
         ; assign carrier
         (assigned_robot_carrier  carrier1 robot1)
     )
